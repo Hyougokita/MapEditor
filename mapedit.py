@@ -10,6 +10,7 @@ class Mapedit(tk.Frame):
     def __init__(self, master = None):
         super().__init__(master)
 
+        #ウィンドウズのサイズ
         self.editor_size_x = 960
         self.editor_size_y = 540
 
@@ -20,9 +21,10 @@ class Mapedit(tk.Frame):
         self.canvas = tk.Canvas(self.master,width = self.editor_size_x,height = self.editor_size_y,bg = "white")
         # Canvasを配置
 
-
+        # 初めてのマス位置
         self.startX = 10
         self.startY = 20
+
         # マス
         self.scale = 1.0
         self.masuWidth = 20 * self.scale
@@ -50,6 +52,10 @@ class Mapedit(tk.Frame):
         self.sub_menu_item_list = []
         self.sub_menu_item_color = ["LightPink","Purple","Gold","Aqua"]
         self.sub_menu_button_list = []
+        self.sub_menu_button_start_position_x = 820
+        self.sub_menu_button_start_position_y = 35
+        self.sub_menu_button_padding_y = 45
+        self.sub_menu_item_dict = []
 
 
         #ファイル名前関連
@@ -148,14 +154,59 @@ class Mapedit(tk.Frame):
     def ButtonEventTest(self):
         print("Button")
 
+
+    def DrawSubMenuSingleItem(self,text,color = "red"):
+        self.SetButton(text,x = self.sub_menu_button_start_position_x,y = self.sub_menu_button_start_position_y,
+                       bg = color,
+                       width = 8,
+                       func = lambda f = text:self.CheckSubMenuItemNumber(f))
+
+    def DrawSubMenuSingleItem(self,text):
+        color = self.sub_menu_item_color[len(self.sub_menu_item_list)]
+        self.SetButton(text,x = self.sub_menu_button_start_position_x,y = self.sub_menu_button_start_position_y,
+                       bg = color,
+                       width = 8,
+                       func = lambda f = text:self.CheckSubMenuItemNumber(f))
+
+    def OpenExcel(self,sheet_name):
+        if(self.map_excel_file_full_name != ""):
+            book = openpyxl.load_workbook(self.map_excel_file_full_name)
+            active_sheet = book.active
+            sheet = book.get_sheet_by_name(sheet_name)
+            return  sheet
+
+    #Excelに登録したconfigを辞書リストに保存する
+    def ReadSubMenuConfigFromExcel(self):
+            sheet = self.OpenExcel("Submenu")
+            for i in range(2,30):
+                obj_name = sheet.cell(row = i, column = 1).value
+                obj_color = sheet.cell(row = i, column = 2).value
+                obj_flag = sheet.cell(row = i, column = 3).value
+                if(obj_name != None):
+                    self.sub_menu_item_dict.append({'obj_name':obj_name,'obj_color':obj_color,'obj_flag':obj_flag})
+                else:
+                    break
+
+            if __debug__:
+                for i in range(len(self.sub_menu_item_dict)):
+                    print(self.sub_menu_item_dict[i])
+
+
     def DrawSubMenuItem(self,x,y):
-        """  TEST  """
+        """  TEST
         self.SetButton("道",x=x,y=y,bg=self.sub_menu_item_color[0],width=8,
                        func=lambda f = "道":self.CheckSubMenuItemNumber(f))
         self.SetButton("建物",x=x,y=y+40,bg=self.sub_menu_item_color[1],width=8,
                        func=lambda f = "建物":self.CheckSubMenuItemNumber(f))
         print(self.sub_menu_button_list[0]['text'],self.sub_menu_button_list[1]['text'],)
-        """TEST END"""
+        TEST END"""
+        if __debug__:
+            print("length of sub_menu_item_dict",len(self.sub_menu_item_dict))
+        for i in range(len(self.sub_menu_item_dict)):
+            temp_obj_name = self.sub_menu_item_dict[i]['obj_name']
+            self.SetButton(temp_obj_name,x = x, y = y + self.sub_menu_button_padding_y * i,
+                           bg = self.sub_menu_item_dict[i]['obj_color'],width = 8,
+                           func = lambda f = temp_obj_name : self.CheckSubMenuItemNumber(f))
 
     def CheckSubMenuItemNumber(self, text):
         for i in range(len(self.sub_menu_button_list)):
@@ -184,21 +235,19 @@ class Mapedit(tk.Frame):
     def DrawSubMenu(self):
         if self.sub_menu_active:
             self.rect = self.canvas.create_rectangle(800,20,900,400,fill = 'white')
-            print("self.rect",self.rect)
+            if __debug__:
+                print("self.rect番号：",self.rect)
         else:
             pass
-
-    def ReadSubMenuItemFromExcel(self):
-        pass
 
     def ReadMapInfoFromExcel(self):
         if(self.map_excel_file_full_name != ""):
             book = openpyxl.load_workbook(self.map_excel_file_full_name)
             active_sheet = book.active
             sheet = book.get_sheet_by_name("MapInfo")
-            print(sheet.cell(row = 1, column = 2).value)
-            print(sheet.cell(row = 2, column = 2).value)
-            print(sheet.cell(row = 3, column = 3).value)
+            if __debug__:
+                print("MapInfo Size X:",sheet.cell(row = 1, column = 2).value)
+                print("MapInfo Size Y:",sheet.cell(row = 2, column = 2).value)
 
             self.masu_x = sheet.cell(row = 1, column= 2).value
             self.masu_y = sheet.cell(row = 2, column= 2).value
@@ -236,6 +285,7 @@ class Mapedit(tk.Frame):
         self.ReadMapFromExcel()
         if(self.masu_x != -1 and self.masu_y != -1):
             self.SetMasu(self.masu_x, self.masu_y)
+        self.ReadSubMenuConfigFromExcel()
 
 
     def ReadMapFromExcel(self):
@@ -247,13 +297,15 @@ class Mapedit(tk.Frame):
                 temp_list = []
                 for j in range(1,self.masu_y + 1):
                     temp_value = sheet.cell(row = j, column= i).value
-                    print(temp_value)
+                    if __debug__:
+                        print("cell vaule:",(j,i),":",temp_value)
                     if(temp_value == None):
                         temp_list.append(0)
                     else:
                         temp_list.append(temp_value)
                 self.map_chip.append(temp_list)
-            print(self.map_chip)
+            if __debug__:
+                print(self.map_chip)
 
 
 
