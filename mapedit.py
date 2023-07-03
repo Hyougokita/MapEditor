@@ -1,8 +1,11 @@
+import tkinter
 import tkinter as tk
+import tkinter.ttk as ttk
 import  csv
 import  openpyxl
 from openpyxl import  Workbook
 from tkinter import  filedialog
+from tkinter import simpledialog
 
 
 
@@ -51,6 +54,7 @@ class Mapedit(tk.Frame):
         self.sub_menu_item_number = 0
         self.sub_menu_item_list = []
         self.sub_menu_item_color = ["LightPink","Purple","Gold","Aqua"]
+        self.sub_menu_item_color_can_be_choice = self.sub_menu_item_color
         self.sub_menu_button_list = []
         self.sub_menu_button_start_position_x = 820
         self.sub_menu_button_start_position_y = 35
@@ -204,9 +208,11 @@ class Mapedit(tk.Frame):
             print("length of sub_menu_item_dict",len(self.sub_menu_item_dict))
         for i in range(len(self.sub_menu_item_dict)):
             temp_obj_name = self.sub_menu_item_dict[i]['obj_name']
+            temp_obj_color = self.sub_menu_item_dict[i]['obj_color']
             self.SetButton(temp_obj_name,x = x, y = y + self.sub_menu_button_padding_y * i,
-                           bg = self.sub_menu_item_dict[i]['obj_color'],width = 8,
+                           bg = temp_obj_color,width = 8,
                            func = lambda f = temp_obj_name : self.CheckSubMenuItemNumber(f))
+            self.sub_menu_item_color_can_be_choice.remove(temp_obj_color)
 
     def CheckSubMenuItemNumber(self, text):
         for i in range(len(self.sub_menu_button_list)):
@@ -253,6 +259,38 @@ class Mapedit(tk.Frame):
             self.masu_y = sheet.cell(row = 2, column= 2).value
             #return (sheet.cell(row = 1,column=2).value,sheet.cell(row = 2,column=2).value)
 
+    def AddNewSubMenuItem(self):
+        pop_up_window = tk.Tk()
+        pop_up_window.title("建物新規作成")
+        pop_up_window.geometry("400x120")
+
+        label_construction_name = tkinter.Label(pop_up_window,text = "建物の名前")
+        label_construction_color = tkinter.Label(pop_up_window,text = "記号の色")
+        label_construction_name.place(x = 20, y = 20)
+        label_construction_color.place(x = 20, y = 50)
+
+        construction_entry_box = tkinter.Entry(pop_up_window,width=40)
+        construction_entry_box.insert(tkinter.END,"建物")
+        construction_entry_box.place(x = 100, y = 20)
+
+        construction_color_combobox = ttk.Combobox(pop_up_window,
+                                                   height = len(self.sub_menu_item_color_can_be_choice),
+                                                   values = self.sub_menu_item_color_can_be_choice)
+        construction_color_combobox.place(x=100, y=50)
+
+        construction_color_combobox.bind('<<ComboboxSelected>>',func = lambda f : print(construction_color_combobox.get()))
+
+        def GetPopUpWindowData():
+            print("color:",construction_color_combobox.get())
+            print("construction_name:",construction_entry_box.get())
+            pass
+
+        pop_up_window_button = tkinter.Button(pop_up_window,text = "新規", command = GetPopUpWindowData)
+        pop_up_window_button.pack()
+        pop_up_window_button.place(x = 30, y = 80)
+
+    def WriteSubMenuItemConfigToExcel(self):
+        pass
 
     def DrawMenu(self):
         self.menu_bar = tk.Menu(self.canvas)
@@ -269,9 +307,10 @@ class Mapedit(tk.Frame):
         self.menu_bar.add_cascade(label = "サブメニュー", menu = self.sub_menu)
 
         self.sub_menu.add_command(label = "表示/隠す", command = self.SubMenuEvent)
+        self.sub_menu.add_command(label = "新規", command = self.AddNewSubMenuItem)
 
-        self.canvas.bind('<Control-O>', self.OpenExplorer)
-        self.canvas.bind('<Control-o>', self.OpenExplorer)
+        self.canvas.bind('<Control-Key-O>', self.OpenMapExcelFile)
+        self.canvas.bind('<Control-Key-o>',self.OpenMapExcelFile)
 
     def OpenExplorer(self,event = 0):
         self.map_excel_file_full_name = filedialog.askopenfilename(defaultextension = ".xlsx")

@@ -8,6 +8,10 @@ for i in range(0,3):
         #print(list_x)
     list.append(list_x)
 
-print(list)
+list2 = ["red","blue"]
+
+print(list2)
+list2.remove("red")
+print(list2)
 
 
