@@ -50,11 +50,13 @@ class Mapedit(tk.Frame):
         self.constriction_flag = -1
 
         #サブメニュー関連
-        self.sub_menu_active = False
+        self.sub_menu_active = True
         self.sub_menu_item_number = 0
         self.sub_menu_item_list = []
         self.sub_menu_item_color = ["LightPink","Purple","Gold","Aqua"]
-        self.sub_menu_item_color_can_be_choice = self.sub_menu_item_color
+        self.sub_menu_item_color_can_be_choice = []
+        for i in self.sub_menu_item_color:
+            self.sub_menu_item_color_can_be_choice.append(i)
         self.sub_menu_button_list = []
         self.sub_menu_button_start_position_x = 820
         self.sub_menu_button_start_position_y = 35
@@ -103,7 +105,7 @@ class Mapedit(tk.Frame):
         return False
 
     def ChangeColor(self,x,y):
-        self.canvas.itemconfig(self.masu_rect_list[x][y],fill = self.sub_menu_item_color[self.constriction_flag])
+        self.canvas.itemconfig(self.masu_rect_list[x][y],fill = self.sub_menu_item_color[self.sub_menu_item_dict[self.constriction_flag]['obj_flag'] - 1])
 
 
     def WriteCsv(self,col,cow,constriction_flag):
@@ -116,8 +118,9 @@ class Mapedit(tk.Frame):
     def SaveMapChipToExcel(self):
         if (self.map_excel_file_full_name != ""):
             book = openpyxl.load_workbook(self.map_excel_file_full_name)
-            active_sheet = book.active
             sheet = book.get_sheet_by_name("Map")
+            #sheet = self.OpenExcel("Map")['sheet']
+            #book = self.OpenExcel("Map")['book']
             for i in range(self.masu_x):
                 for j in range(self.masu_y):
                     sheet.cell(row = j + 1, column = i + 1).value = self.map_chip[i][j]
@@ -177,17 +180,18 @@ class Mapedit(tk.Frame):
             book = openpyxl.load_workbook(self.map_excel_file_full_name)
             active_sheet = book.active
             sheet = book.get_sheet_by_name(sheet_name)
-            return  sheet
+            return  {'sheet':sheet,'book':book}
 
     #Excelに登録したconfigを辞書リストに保存する
     def ReadSubMenuConfigFromExcel(self):
-            sheet = self.OpenExcel("Submenu")
+            sheet = self.OpenExcel("Submenu")['sheet']
             for i in range(2,30):
                 obj_name = sheet.cell(row = i, column = 1).value
                 obj_color = sheet.cell(row = i, column = 2).value
                 obj_flag = sheet.cell(row = i, column = 3).value
                 if(obj_name != None):
                     self.sub_menu_item_dict.append({'obj_name':obj_name,'obj_color':obj_color,'obj_flag':obj_flag})
+                    self.sub_menu_item_color_can_be_choice.remove(obj_color)
                 else:
                     break
 
@@ -212,13 +216,15 @@ class Mapedit(tk.Frame):
             self.SetButton(temp_obj_name,x = x, y = y + self.sub_menu_button_padding_y * i,
                            bg = temp_obj_color,width = 8,
                            func = lambda f = temp_obj_name : self.CheckSubMenuItemNumber(f))
-            self.sub_menu_item_color_can_be_choice.remove(temp_obj_color)
+
 
     def CheckSubMenuItemNumber(self, text):
         for i in range(len(self.sub_menu_button_list)):
             if(self.sub_menu_button_list[i]['text'] == text):
                 self.constriction_flag = i
-                print(i)
+                if __debug__:
+                    print(i)
+                    print(self.sub_menu_item_color)
                 break
 
     def SubMenuEvent(self):
@@ -283,14 +289,37 @@ class Mapedit(tk.Frame):
         def GetPopUpWindowData():
             print("color:",construction_color_combobox.get())
             print("construction_name:",construction_entry_box.get())
-            pass
+            self.WriteSubMenuItemConfigToExcel(construction_entry_box.get(),construction_color_combobox.get())
+            pop_up_window.destroy()
+            if(self.sub_menu_active):
+                self.DrawSubMenu()
+                self.DrawSubMenuItem(820, 35)
 
         pop_up_window_button = tkinter.Button(pop_up_window,text = "新規", command = GetPopUpWindowData)
         pop_up_window_button.pack()
         pop_up_window_button.place(x = 30, y = 80)
 
-    def WriteSubMenuItemConfigToExcel(self):
-        pass
+    def WriteSubMenuItemConfigToExcel(self,obj_name,obj_color):
+        book = openpyxl.load_workbook(self.map_excel_file_full_name)
+        sheet = book.get_sheet_by_name("Submenu")
+        row = len(self.sub_menu_item_dict) + 2
+        print("row:",row)
+        sheet.cell(row = row, column = 1).value = obj_name
+        sheet.cell(row = row, column = 2).value = obj_color
+        sheet.cell(row = row, column = 3).value = self.SearchList(self.sub_menu_item_color,obj_color) + 1
+        self.sub_menu_item_dict.append({'obj_name': obj_name, 'obj_color': obj_color, 'obj_flag': self.SearchList(self.sub_menu_item_color,obj_color) + 1})
+        self.sub_menu_item_color_can_be_choice.remove(obj_color)
+        book.save(self.map_excel_file_full_name)
+
+    def SearchList(self,list,obj):
+        print("Search List")
+        print(list)
+        print(obj)
+        for i in range(len(list)):
+            print(list[i],obj)
+            if list[i] == obj:
+                print("i:",i)
+                return i
 
     def DrawMenu(self):
         self.menu_bar = tk.Menu(self.canvas)
