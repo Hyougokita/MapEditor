@@ -53,7 +53,10 @@ class Mapedit(tk.Frame):
         self.sub_menu_active = True
         self.sub_menu_item_number = 0
         self.sub_menu_item_list = []
-        self.sub_menu_item_color = ["LightPink","Purple","Gold","Aqua"]
+        self.sub_menu_item_color = ["LightPink","Purple","Gold","Aqua","Azure",
+                                    "Brown","Cyan","Green","IndianRed","LightBlue",
+                                    "Maroon","Navy","Orange","Salmon","SkyBlue",
+                                    "Tan","Tomato","Violet","Wheat","Yellow"]
         self.sub_menu_item_color_can_be_choice = []
         for i in self.sub_menu_item_color:
             self.sub_menu_item_color_can_be_choice.append(i)
@@ -234,7 +237,7 @@ class Mapedit(tk.Frame):
         else:
             self.sub_menu_active = True
             self.DrawSubMenu()
-            self.DrawSubMenuItem(820,35)
+            self.DrawSubMenuItem(self.sub_menu_button_start_position_x,self.sub_menu_button_start_position_y)
 
 
 
@@ -293,7 +296,7 @@ class Mapedit(tk.Frame):
             pop_up_window.destroy()
             if(self.sub_menu_active):
                 self.DrawSubMenu()
-                self.DrawSubMenuItem(820, 35)
+                self.DrawSubMenuItem(self.sub_menu_button_start_position_x, self.sub_menu_button_start_position_y)
 
         pop_up_window_button = tkinter.Button(pop_up_window,text = "新規", command = GetPopUpWindowData)
         pop_up_window_button.pack()
@@ -366,7 +369,7 @@ class Mapedit(tk.Frame):
                 for j in range(1,self.masu_y + 1):
                     temp_value = sheet.cell(row = j, column= i).value
                     if __debug__:
-                        print("cell vaule:",(j,i),":",temp_value)
+                        print("cell value:",(j,i),":",temp_value)
                     if(temp_value == None):
                         temp_list.append(0)
                     else:

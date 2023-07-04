@@ -14,4 +14,9 @@ print(list2)
 list2.remove("red")
 print(list2)
 
+def dai_xie(weight,height,age):
+    return 67 + 13.73 * weight + 5 * height -6.9 * age
+
+print(dai_xie(61,185,25))
+
 
