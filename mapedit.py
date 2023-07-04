@@ -108,6 +108,9 @@ class Mapedit(tk.Frame):
         return False
 
     def ChangeColor(self,x,y):
+        if __debug__:
+            print("sub_menu_item_color",self.sub_menu_item_color)
+            print("sub_menu_item_dict",self.sub_menu_item_dict)
         self.canvas.itemconfig(self.masu_rect_list[x][y],fill = self.sub_menu_item_color[self.sub_menu_item_dict[self.constriction_flag]['obj_flag'] - 1])
 
 
@@ -144,21 +147,21 @@ class Mapedit(tk.Frame):
 
     def SetButton(self,text,x,y,func):
         self.btn = tk.Button(self.canvas,text = text, width = 4, height = 2, bd=1, padx=0, pady=0, relief='ridge',command=func)
-        self.btn.pack()
         self.btn.place(x=x, y=y)
+        #self.btn.pack()
         self.sub_menu_button_list.append(self.btn)
 
     def SetButton(self,text,x,y,func,width = 4,height = 2):
         self.btn = tk.Button(self.canvas,text = text, width = width, height = height, bd=1, padx=0, pady=0, relief='ridge',command=func)
-        self.btn.pack()
         self.btn.place(x=x, y=y)
+        #self.btn.pack()
         self.sub_menu_button_list.append(self.btn)
 
     def SetButton(self, text, x, y, func, width=4, height=2, bg = "white"):
         self.btn = tk.Button(self.canvas, text=text, width=width, height=height, bd=1, padx=0, pady=0, relief='ridge',
                              command=func, bg = bg)
-        self.btn.pack()
         self.btn.place(x=x, y=y)
+        #self.btn.pack()
         self.sub_menu_button_list.append(self.btn)
 
     def ButtonEventTest(self):
@@ -181,7 +184,6 @@ class Mapedit(tk.Frame):
     def OpenExcel(self,sheet_name):
         if(self.map_excel_file_full_name != ""):
             book = openpyxl.load_workbook(self.map_excel_file_full_name)
-            active_sheet = book.active
             sheet = book.get_sheet_by_name(sheet_name)
             return  {'sheet':sheet,'book':book}
 
@@ -204,46 +206,56 @@ class Mapedit(tk.Frame):
 
 
     def DrawSubMenuItem(self,x,y):
-        """  TEST
-        self.SetButton("道",x=x,y=y,bg=self.sub_menu_item_color[0],width=8,
-                       func=lambda f = "道":self.CheckSubMenuItemNumber(f))
-        self.SetButton("建物",x=x,y=y+40,bg=self.sub_menu_item_color[1],width=8,
-                       func=lambda f = "建物":self.CheckSubMenuItemNumber(f))
-        print(self.sub_menu_button_list[0]['text'],self.sub_menu_button_list[1]['text'],)
-        TEST END"""
         if __debug__:
             print("length of sub_menu_item_dict",len(self.sub_menu_item_dict))
         for i in range(len(self.sub_menu_item_dict)):
             temp_obj_name = self.sub_menu_item_dict[i]['obj_name']
             temp_obj_color = self.sub_menu_item_dict[i]['obj_color']
-            self.SetButton(temp_obj_name,x = x, y = y + self.sub_menu_button_padding_y * i,
+            self.SetButton(temp_obj_name,x = x , y = y + self.sub_menu_button_padding_y * i,
                            bg = temp_obj_color,width = 8,
                            func = lambda f = temp_obj_name : self.CheckSubMenuItemNumber(f))
 
 
+
+
     def CheckSubMenuItemNumber(self, text):
+        if __debug__:
+            print("length of sub_men_button_list:",len(self.sub_menu_button_list))
         for i in range(len(self.sub_menu_button_list)):
             if(self.sub_menu_button_list[i]['text'] == text):
                 self.constriction_flag = i
                 if __debug__:
-                    print(i)
-                    print(self.sub_menu_item_color)
+                    print("constriction_flag",i)
+                    #print(self.sub_menu_item_color)
                 break
 
     def SubMenuEvent(self):
-        if self.sub_menu_active:
-            self.canvas.delete(self.rect)
+        if __debug__:
+            print("sub_menu_active",self.sub_menu_active)
+            print("sub_button_list",self.sub_menu_button_list)
+        if self.sub_menu_active == True:
+            #self.canvas.delete(self.rect)
+            #for i in (self.sub_menu_button_list):
+                #print("type",type(i))
+                #i.pack_forget()
+            self.sub_menu_button_list = []
             self.sub_menu_active = False
         else:
-            self.sub_menu_active = True
-            self.DrawSubMenu()
+            #self.DrawSubMenu()
+            self.sub_menu_button_list = []
             self.DrawSubMenuItem(self.sub_menu_button_start_position_x,self.sub_menu_button_start_position_y)
 
+            self.sub_menu_active = True
 
+    def DestoryButton(self):
+        for i in self.sub_menu_button_list:
+            print(i)
+            i.pack_forget()
 
     def Set(self):
-        #self.btn = tk.Button(self.canvas, text='text', width=300, height=150, state='active')
-        #self.SetButton("サブメニュー",920,20,self.SubMenuEvent)
+        if __debug__:
+            self.test_btn = tk.Button(text = "テスト",command=self.DestoryButton)
+            self.test_btn.place( x = 300, y = 200,)
         self.canvas.bind('<ButtonPress-1>',self.LeftClickEvent)
 
 
@@ -294,9 +306,15 @@ class Mapedit(tk.Frame):
             print("construction_name:",construction_entry_box.get())
             self.WriteSubMenuItemConfigToExcel(construction_entry_box.get(),construction_color_combobox.get())
             pop_up_window.destroy()
+
+            if __debug__:
+                print("length of button list", len(self.sub_menu_button_list))
+
             if(self.sub_menu_active):
-                self.DrawSubMenu()
+                #self.DrawSubMenu()
+                self.sub_menu_button_list = []
                 self.DrawSubMenuItem(self.sub_menu_button_start_position_x, self.sub_menu_button_start_position_y)
+
 
         pop_up_window_button = tkinter.Button(pop_up_window,text = "新規", command = GetPopUpWindowData)
         pop_up_window_button.pack()
@@ -388,7 +406,7 @@ if __name__ == "__main__":
     app = Mapedit(master = root)
     #app.SetMasu(3,3)
     app.DrawMenu()
-    app.DrawSubMenu()
+    #app.DrawSubMenu()
     app.Set()
 
     root.config(menu = app.menu_bar)
