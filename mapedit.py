@@ -62,8 +62,8 @@ class Mapedit(tk.Frame):
             self.sub_menu_item_color_can_be_choice.append(i)
         self.sub_menu_button_list = []
         self.sub_menu_button_start_position_x = 820
-        self.sub_menu_button_start_position_y = 35
-        self.sub_menu_button_padding_y = 45
+        self.sub_menu_button_start_position_y = 25
+        self.sub_menu_button_padding_y = 50
         self.sub_menu_item_dict = []
 
 
@@ -131,6 +131,8 @@ class Mapedit(tk.Frame):
                 for j in range(self.masu_y):
                     sheet.cell(row = j + 1, column = i + 1).value = self.map_chip[i][j]
             book.save(self.map_excel_file_full_name)
+            if __debug__:
+                print("保存しました！")
 
     def LeftClickEvent(self,event):
         print("X:",event.x," Y:",event.y)
@@ -211,7 +213,7 @@ class Mapedit(tk.Frame):
         for i in range(len(self.sub_menu_item_dict)):
             temp_obj_name = self.sub_menu_item_dict[i]['obj_name']
             temp_obj_color = self.sub_menu_item_dict[i]['obj_color']
-            self.SetButton(temp_obj_name,x = x , y = y + self.sub_menu_button_padding_y * i,
+            self.SetButton(temp_obj_name,x = x + (70 * int(i / 10)), y = y + self.sub_menu_button_padding_y * (i % 10),
                            bg = temp_obj_color,width = 8,
                            func = lambda f = temp_obj_name : self.CheckSubMenuItemNumber(f))
 
