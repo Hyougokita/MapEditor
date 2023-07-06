@@ -63,7 +63,7 @@ class Mapedit(tk.Frame):
         self.sub_menu_button_list = []
         self.sub_menu_button_start_position_x = 820
         self.sub_menu_button_start_position_y = 25
-        self.sub_menu_button_padding_y = 50
+        self.sub_menu_button_padding_y = 45
         self.sub_menu_item_dict = []
 
 
@@ -78,6 +78,7 @@ class Mapedit(tk.Frame):
         list.append(self.masu)
 
     def SetMasu(self,yoko,tate):
+        self.masu_rect_list = []
         for i in range(0,yoko):
             temp_list = []
             for j in range(0,tate):
@@ -86,7 +87,8 @@ class Mapedit(tk.Frame):
                               self.startY + (self.masuHeight + self.padding) * j,
                               self.sub_menu_item_color[int(self.map_chip[i][j])],temp_list)
             self.masu_rect_list.append(temp_list)
-        print(self.masu_rect_list)
+        if __debug__:
+            print(self.masu_rect_list)
         self.canvas.pack()
 
     def CheckMasu(self):
@@ -141,8 +143,11 @@ class Mapedit(tk.Frame):
         if(self.CheckIn(event.x,event.y)):
             self.ChangeColor(self.tempMasuX,self.tempMasuY)
             self.map_chip[self.tempMasuX][self.tempMasuY] = self.constriction_flag
-            #self.WriteCsv(self.tempMasuX,self.tempMasuY,self.constriction_flag)
 
+    def RightClickEvent(self,event):
+        if __debug__:
+            print(self.masu_x,self.masu_y)
+        #for i in range():
         pass
 
 
@@ -254,13 +259,74 @@ class Mapedit(tk.Frame):
             print(i)
             i.pack_forget()
 
+
+    def DestroyAllMasu(self):
+        for i in range(self.masu_x):
+            for j in range(self.masu_y):
+                self.canvas.delete(self.masu_rect_list[i][j])
+
+    # 行追加
+    def AddMasuColumn(self):
+        self.DestroyAllMasu()
+        self.masu_y += 1;
+        if __debug__:
+            print(self.map_chip)
+        for i in range(self.masu_x):
+            self.map_chip[i].append(0)
+        if __debug__:
+            print(self.map_chip)
+        self.SetMasu(self.masu_x,self.masu_y)
+    # 行削除
+    def RemoveMasuColumn(self):
+        self.DestroyAllMasu()
+        self.masu_y -= 1;
+        if __debug__:
+            print(self.map_chip)
+        for i in range(self.masu_x):
+            self.map_chip[i].remove(self.map_chip[i][self.masu_y])
+        if __debug__:
+            print(self.map_chip)
+        self.SetMasu(self.masu_x,self.masu_y)
+
+    def AddMasuRow(self):
+        self.DestroyAllMasu()
+        self.masu_x += 1;
+        if __debug__:
+            print(self.map_chip)
+        temp_list = []
+        for i in range(self.masu_y):
+            temp_list.append(0)
+        self.map_chip.append(temp_list)
+        if __debug__:
+            print(self.map_chip)
+        self.SetMasu(self.masu_x,self.masu_y)
+
+    def RemoveMasuRow(self):
+        self.DestroyAllMasu()
+        self.masu_x -= 1;
+        if __debug__:
+            print(self.map_chip)
+        self.map_chip.remove(self.map_chip[self.masu_x])
+        if __debug__:
+            print(self.map_chip)
+        self.SetMasu(self.masu_x,self.masu_y)
+
     def Set(self):
         if __debug__:
-            pass
-            #self.test_btn = tk.Button(text = "テスト",command=self.DestoryButton)
-            #self.test_btn.place( x = 300, y = 200,)
-        self.canvas.bind('<ButtonPress-1>',self.LeftClickEvent)
+            self.test_btn = tk.Button(text = "行追加",command=self.AddMasuColumn)
+            self.test_btn.place( x = self.sub_menu_button_start_position_x, y = 480,)
 
+            self.test_btn = tk.Button(text = "列追加",command=self.AddMasuRow)
+            self.test_btn.place( x = self.sub_menu_button_start_position_x + 50, y = 480,)
+
+            self.test_btn = tk.Button(text = "行削除",command=self.RemoveMasuColumn)
+            self.test_btn.place( x = self.sub_menu_button_start_position_x, y = 510,)
+
+            self.test_btn = tk.Button(text = "列削除",command=self.RemoveMasuRow)
+            self.test_btn.place( x = self.sub_menu_button_start_position_x + 50, y = 510,)
+
+        self.canvas.bind('<ButtonPress-1>',self.LeftClickEvent)
+        self.canvas.bind('<ButtonPress-3>',self.RightClickEvent)
 
     def DrawSubMenu(self):
         if self.sub_menu_active:
@@ -311,7 +377,8 @@ class Mapedit(tk.Frame):
         #construction obg address
         def Choose_Obj_File():
             construction_obj_file_name = filedialog.askopenfilename(defaultextension=".obj")
-            print(construction_obj_file_name)
+            if __debug__:
+                print(construction_obj_file_name)
             name_list = construction_obj_file_name.split('/')
             file_name = ""
             for i in range(-4,0):
@@ -319,7 +386,8 @@ class Mapedit(tk.Frame):
                     file_name += ("/"+name_list[i])
                 else:
                     file_name += name_list[i]
-            print(file_name)
+            if __debug__:
+                print(file_name)
             construction_obj_file_adr_entry_box.insert(tkinter.END,file_name)
 
         construction_obj_file_adr_entry_box = tk.Entry(pop_up_window,width = 60)
@@ -331,8 +399,9 @@ class Mapedit(tk.Frame):
 
 
         def GetPopUpWindowData():
-            print("color:",construction_color_combobox.get())
-            print("construction_name:",construction_entry_box.get())
+            if __debug__:
+                print("color:",construction_color_combobox.get())
+                print("construction_name:",construction_entry_box.get())
             self.WriteSubMenuItemConfigToExcel(construction_entry_box.get(),
                                                construction_color_combobox.get(),
                                                construction_obj_file_adr_entry_box.get())
@@ -355,7 +424,8 @@ class Mapedit(tk.Frame):
         book = openpyxl.load_workbook(self.map_excel_file_full_name)
         sheet = book.get_sheet_by_name("Submenu")
         row = len(self.sub_menu_item_dict) + 2
-        print("row:",row)
+        if __debug__:
+            print("row:",row)
         sheet.cell(row = row, column = 1).value = obj_name
         sheet.cell(row = row, column = 2).value = obj_color
         sheet.cell(row = row, column = 3).value = self.SearchList(self.sub_menu_item_color,obj_color) + 1
@@ -365,13 +435,16 @@ class Mapedit(tk.Frame):
         book.save(self.map_excel_file_full_name)
 
     def SearchList(self,list,obj):
-        print("Search List")
-        print(list)
-        print(obj)
+        if __debug__:
+            print("Search List")
+            print(list)
+            print(obj)
         for i in range(len(list)):
-            print(list[i],obj)
+            if __debug__:
+                print(list[i],obj)
             if list[i] == obj:
-                print("i:",i)
+                if __debug__:
+                    print("i:",i)
                 return i
 
     def DrawMenu(self):
