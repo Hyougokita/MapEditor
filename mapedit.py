@@ -256,8 +256,9 @@ class Mapedit(tk.Frame):
 
     def Set(self):
         if __debug__:
-            self.test_btn = tk.Button(text = "テスト",command=self.DestoryButton)
-            self.test_btn.place( x = 300, y = 200,)
+            pass
+            #self.test_btn = tk.Button(text = "テスト",command=self.DestoryButton)
+            #self.test_btn.place( x = 300, y = 200,)
         self.canvas.bind('<ButtonPress-1>',self.LeftClickEvent)
 
 
@@ -285,28 +286,56 @@ class Mapedit(tk.Frame):
     def AddNewSubMenuItem(self):
         pop_up_window = tk.Tk()
         pop_up_window.title("建物新規作成")
-        pop_up_window.geometry("400x120")
+        pop_up_window.geometry("400x180")
 
         label_construction_name = tkinter.Label(pop_up_window,text = "建物の名前")
         label_construction_color = tkinter.Label(pop_up_window,text = "記号の色")
+        label_construction_obj_adr = tkinter.Label(pop_up_window,text = "objファイルのアドレス")
         label_construction_name.place(x = 20, y = 20)
         label_construction_color.place(x = 20, y = 50)
+        label_construction_obj_adr.place(x = 20, y = 80)
 
+
+        #construction name
         construction_entry_box = tkinter.Entry(pop_up_window,width=40)
         construction_entry_box.insert(tkinter.END,"建物")
         construction_entry_box.place(x = 100, y = 20)
 
+        #construction color
         construction_color_combobox = ttk.Combobox(pop_up_window,
                                                    height = len(self.sub_menu_item_color_can_be_choice),
                                                    values = self.sub_menu_item_color_can_be_choice)
         construction_color_combobox.place(x=100, y=50)
-
         construction_color_combobox.bind('<<ComboboxSelected>>',func = lambda f : print(construction_color_combobox.get()))
+
+        #construction obg address
+        def Choose_Obj_File():
+            construction_obj_file_name = filedialog.askopenfilename(defaultextension=".obj")
+            print(construction_obj_file_name)
+            name_list = construction_obj_file_name.split('/')
+            file_name = ""
+            for i in range(-4,0):
+                if i != -4:
+                    file_name += ("/"+name_list[i])
+                else:
+                    file_name += name_list[i]
+            print(file_name)
+            construction_obj_file_adr_entry_box.insert(tkinter.END,file_name)
+
+        construction_obj_file_adr_entry_box = tk.Entry(pop_up_window,width = 60)
+        construction_obj_file_adr_entry_box.place(x = 20, y = 110)
+        choice_btn = tk.Button(pop_up_window,text = "選択", command = Choose_Obj_File)
+        choice_btn.pack()
+        choice_btn.place(x = 150, y = 80)
+
+
 
         def GetPopUpWindowData():
             print("color:",construction_color_combobox.get())
             print("construction_name:",construction_entry_box.get())
-            self.WriteSubMenuItemConfigToExcel(construction_entry_box.get(),construction_color_combobox.get())
+            self.WriteSubMenuItemConfigToExcel(construction_entry_box.get(),
+                                               construction_color_combobox.get(),
+                                               construction_obj_file_adr_entry_box.get())
             pop_up_window.destroy()
 
             if __debug__:
@@ -320,9 +349,9 @@ class Mapedit(tk.Frame):
 
         pop_up_window_button = tkinter.Button(pop_up_window,text = "新規", command = GetPopUpWindowData)
         pop_up_window_button.pack()
-        pop_up_window_button.place(x = 30, y = 80)
+        pop_up_window_button.place(x = 30, y = 140)
 
-    def WriteSubMenuItemConfigToExcel(self,obj_name,obj_color):
+    def WriteSubMenuItemConfigToExcel(self,obj_name,obj_color,obj_adr):
         book = openpyxl.load_workbook(self.map_excel_file_full_name)
         sheet = book.get_sheet_by_name("Submenu")
         row = len(self.sub_menu_item_dict) + 2
@@ -330,6 +359,7 @@ class Mapedit(tk.Frame):
         sheet.cell(row = row, column = 1).value = obj_name
         sheet.cell(row = row, column = 2).value = obj_color
         sheet.cell(row = row, column = 3).value = self.SearchList(self.sub_menu_item_color,obj_color) + 1
+        sheet.cell(row = row, column = 4).value = obj_adr
         self.sub_menu_item_dict.append({'obj_name': obj_name, 'obj_color': obj_color, 'obj_flag': self.SearchList(self.sub_menu_item_color,obj_color) + 1})
         self.sub_menu_item_color_can_be_choice.remove(obj_color)
         book.save(self.map_excel_file_full_name)
