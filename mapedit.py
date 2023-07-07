@@ -71,6 +71,10 @@ class Mapedit(tk.Frame):
         self.map_excel_file_full_name = ""
         self.map_excel_file_name = ""
 
+        #map chip移動
+        self.RightPressPos_x = 0
+        self.RightPressPos_y = 0
+
 
     def DrawMasu(self,x,y,color,list):
         self.masu = self.canvas.create_rectangle(x,y,x + self.masuWidth,y + self.masuHeight,fill=color)
@@ -82,7 +86,8 @@ class Mapedit(tk.Frame):
         for i in range(0,yoko):
             temp_list = []
             for j in range(0,tate):
-                print("map_chip:",int(self.map_chip[i][j]))
+                if __debug__:
+                    print("map_chip:",int(self.map_chip[i][j]))
                 self.DrawMasu(self.startX + (self.masuWidth + self.padding) * i,
                               self.startY + (self.masuHeight + self.padding) * j,
                               self.sub_menu_item_color[int(self.map_chip[i][j])],temp_list)
@@ -92,8 +97,8 @@ class Mapedit(tk.Frame):
         self.canvas.pack()
 
     def CheckMasu(self):
-        self.tempMasuX = (int)(self.mousePosX / (self.masuWidth + self.padding))
-        self.tempMasuY = (int)(self.mousePosY / (self.masuHeight + self.padding))
+        self.tempMasuX = (int)((self.mousePosX - self.startX)/ (self.masuWidth + self.padding))
+        self.tempMasuY = (int)((self.mousePosY - self.startY) / (self.masuHeight + self.padding))
         print("(",self.tempMasuX,",",self.tempMasuY,")")
 
         return  (self.tempMasuX,self.tempMasuY)
@@ -146,8 +151,36 @@ class Mapedit(tk.Frame):
 
     def RightClickEvent(self,event):
         if __debug__:
-            print(self.masu_x,self.masu_y)
-        #for i in range():
+            pass
+        pass
+
+    def RightPressEvent(self,event):
+        if __debug__:
+            print("Pressed Pos:",event.x,event.y)
+
+        self.RightPressPos_x = event.x
+        self.RightPressPos_y = event.y
+
+        pass
+
+    def RightReleaseEvent(self,event):
+        if __debug__:
+            print("Release Pos:",event.x,event.y)
+
+        move_distance_x = self.RightPressPos_x - event.x
+        move_distance_y = self.RightPressPos_y - event.y
+
+        if __debug__:
+            print("move distance:",move_distance_x,move_distance_y)
+
+        self.startX += move_distance_x
+        self.startY += move_distance_y
+
+        self.DestroyAllMasu()
+        self.SetMasu(self.masu_x,self.masu_y)
+
+        move_distance_x = 0
+        move_distance_y = 0
         pass
 
 
@@ -326,7 +359,9 @@ class Mapedit(tk.Frame):
             self.test_btn.place( x = self.sub_menu_button_start_position_x + 50, y = 510,)
 
         self.canvas.bind('<ButtonPress-1>',self.LeftClickEvent)
-        self.canvas.bind('<ButtonPress-3>',self.RightClickEvent)
+        #self.canvas.bind('<ButtonPress-3>',self.RightClickEvent)
+        self.canvas.bind('<ButtonPress-3>',self.RightPressEvent)
+        self.canvas.bind('<ButtonRelease-3>',self.RightReleaseEvent)
 
     def DrawSubMenu(self):
         if self.sub_menu_active:
@@ -509,7 +544,6 @@ class Mapedit(tk.Frame):
 if __name__ == "__main__":
     root = tk.Tk()
     app = Mapedit(master = root)
-    #app.SetMasu(3,3)
     app.DrawMenu()
     #app.DrawSubMenu()
     app.Set()
