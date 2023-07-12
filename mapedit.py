@@ -18,7 +18,7 @@ class Mapedit(tk.Frame):
         self.editor_size_y = 540
 
 
-        self.master.title("タイトル")    # ウィンドウタイトル
+        self.master.title("縁")    # ウィンドウタイトル
         self.master.geometry("960x540") # ウィンドウサイズ(幅x高さ)
         # Canvasの作成
         self.canvas = tk.Canvas(self.master,width = self.editor_size_x,height = self.editor_size_y,bg = "white")
@@ -57,6 +57,8 @@ class Mapedit(tk.Frame):
                                     "Brown","Cyan","Green","IndianRed","LightBlue",
                                     "Maroon","Navy","Orange","Salmon","SkyBlue",
                                     "Tan","Tomato","Violet","Wheat","Yellow"]
+
+
         self.sub_menu_item_color_can_be_choice = []
         for i in self.sub_menu_item_color:
             self.sub_menu_item_color_can_be_choice.append(i)
@@ -97,7 +99,7 @@ class Mapedit(tk.Frame):
         self.canvas.pack()
 
     def CheckMasu(self):
-        self.tempMasuX = (int)((self.mousePosX - self.startX)/ (self.masuWidth + self.padding))
+        self.tempMasuX = (int)((self.mousePosX - self.startX) / (self.masuWidth + self.padding))
         self.tempMasuY = (int)((self.mousePosY - self.startY) / (self.masuHeight + self.padding))
         print("(",self.tempMasuX,",",self.tempMasuY,")")
 
@@ -131,13 +133,21 @@ class Mapedit(tk.Frame):
     def SaveMapChipToExcel(self):
         if (self.map_excel_file_full_name != ""):
             book = openpyxl.load_workbook(self.map_excel_file_full_name)
+
+            # マップチップの保存
             sheet = book.get_sheet_by_name("Map")
-            #sheet = self.OpenExcel("Map")['sheet']
-            #book = self.OpenExcel("Map")['book']
             for i in range(self.masu_x):
                 for j in range(self.masu_y):
                     sheet.cell(row = j + 1, column = i + 1).value = self.map_chip[i][j]
+
+            # マップチップのサイズの保存
+            sheet = book.get_sheet_by_name("MapInfo")
+            sheet.cell(row=1, column=2).value = self.masu_x
+            sheet.cell(row=2, column=2).value = self.masu_y
+
+            # Excelファイルを保存して閉じる
             book.save(self.map_excel_file_full_name)
+
             if __debug__:
                 print("保存しました！")
 
@@ -147,7 +157,7 @@ class Mapedit(tk.Frame):
         self.mousePosY = event.y
         if(self.CheckIn(event.x,event.y)):
             self.ChangeColor(self.tempMasuX,self.tempMasuY)
-            self.map_chip[self.tempMasuX][self.tempMasuY] = self.constriction_flag
+            self.map_chip[self.tempMasuX][self.tempMasuY] = self.sub_menu_item_dict[self.constriction_flag]["obj_flag"] - 1
 
     def RightClickEvent(self,event):
         if __debug__:
@@ -301,7 +311,7 @@ class Mapedit(tk.Frame):
     # 行追加
     def AddMasuColumn(self):
         self.DestroyAllMasu()
-        self.masu_y += 1;
+        self.masu_y += 1
         if __debug__:
             print(self.map_chip)
         for i in range(self.masu_x):
@@ -312,7 +322,7 @@ class Mapedit(tk.Frame):
     # 行削除
     def RemoveMasuColumn(self):
         self.DestroyAllMasu()
-        self.masu_y -= 1;
+        self.masu_y -= 1
         if __debug__:
             print(self.map_chip)
         for i in range(self.masu_x):
@@ -321,9 +331,10 @@ class Mapedit(tk.Frame):
             print(self.map_chip)
         self.SetMasu(self.masu_x,self.masu_y)
 
+    #
     def AddMasuRow(self):
         self.DestroyAllMasu()
-        self.masu_x += 1;
+        self.masu_x += 1
         if __debug__:
             print(self.map_chip)
         temp_list = []
@@ -336,7 +347,7 @@ class Mapedit(tk.Frame):
 
     def RemoveMasuRow(self):
         self.DestroyAllMasu()
-        self.masu_x -= 1;
+        self.masu_x -= 1
         if __debug__:
             print(self.map_chip)
         self.map_chip.remove(self.map_chip[self.masu_x])
@@ -362,6 +373,13 @@ class Mapedit(tk.Frame):
         #self.canvas.bind('<ButtonPress-3>',self.RightClickEvent)
         self.canvas.bind('<ButtonPress-3>',self.RightPressEvent)
         self.canvas.bind('<ButtonRelease-3>',self.RightReleaseEvent)
+
+
+    def ScaleUpMapChip(self,event):
+        pass
+
+    def ScaleDownMapChip(self,event):
+        pass
 
     def DrawSubMenu(self):
         if self.sub_menu_active:
@@ -469,6 +487,7 @@ class Mapedit(tk.Frame):
         self.sub_menu_item_color_can_be_choice.remove(obj_color)
         book.save(self.map_excel_file_full_name)
 
+
     def SearchList(self,list,obj):
         if __debug__:
             print("Search List")
@@ -535,6 +554,9 @@ class Mapedit(tk.Frame):
                 self.map_chip.append(temp_list)
             if __debug__:
                 print(self.map_chip)
+
+    def ExcelForDirectX(self):
+        pass
 
 
 
