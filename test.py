@@ -19,4 +19,9 @@ def dai_xie(weight,height,age):
 
 print(dai_xie(61,185,25))
 
+a = 8
+
+for x in range(a):
+    print(x)
+
 

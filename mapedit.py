@@ -176,18 +176,23 @@ class Mapedit(tk.Frame):
     def RightReleaseEvent(self,event):
         if __debug__:
             print("Release Pos:",event.x,event.y)
+            print(self.map_chip)
 
         move_distance_x = self.RightPressPos_x - event.x
         move_distance_y = self.RightPressPos_y - event.y
 
         if __debug__:
             print("move distance:",move_distance_x,move_distance_y)
+            print(self.masu_rect_list)
 
         self.startX += move_distance_x
         self.startY += move_distance_y
 
         self.DestroyAllMasu()
         self.SetMasu(self.masu_x,self.masu_y)
+
+        if __debug__:
+            print(self.map_chip)
 
         move_distance_x = 0
         move_distance_y = 0
@@ -372,6 +377,7 @@ class Mapedit(tk.Frame):
         self.canvas.bind('<ButtonPress-1>',self.LeftClickEvent)
         #self.canvas.bind('<ButtonPress-3>',self.RightClickEvent)
         self.canvas.bind('<ButtonPress-3>',self.RightPressEvent)
+        self.canvas.bind('<ButtonPress-2>', self.ExcelForDirectX)
         self.canvas.bind('<ButtonRelease-3>',self.RightReleaseEvent)
 
 
@@ -554,9 +560,94 @@ class Mapedit(tk.Frame):
                 self.map_chip.append(temp_list)
             if __debug__:
                 print(self.map_chip)
+    def SetMinus1(self,x,y,width,height):
+        for i in range(x,x + width):
+            for j in range(y,y+height):
+                self.map_chip[i][j] = -1
 
-    def ExcelForDirectX(self):
-        pass
+
+
+    def ExcelForDirectX(self,event):
+        # ブロックInfo記録用辞書型リスト flag: width: height:
+        temp_dict_list = []
+
+        temp_construction = self.map_chip[0][0]
+        if __debug__:
+            print("temp_construction",temp_construction)
+
+        # 建築ブロックの幅と深さ記録用
+        temp_construction_width = 1
+        temp_construction_height = 1
+
+        # 探索位置の記録用
+        temp_x = 0
+        temp_y = 0
+                        # 8
+        for i in range(self.masu_y):
+                            # 6
+            for j in range(self.masu_x):
+                if __debug__:
+                    pass
+                    #print(self.map_chip[i][j])
+            #print("\n")
+                # 横方向を軸して判定 (-1は探索済みのマスと表している) このマスの探索をskip
+                if(self.map_chip[i][j] == -1):
+                    pass
+
+                # 未探索のマス
+                else:
+                    # 横方向の端っこにたどり着いた場合
+                    if(j + 1 >= self.masu_x):
+                        temp_x = j
+                        temp_y = i
+                        i += 1
+                    # 次のコマも同じフラグなら
+                    elif(self.map_chip[i][j + 1] == temp_construction):
+                        # 建物ブロックの幅１伸ばせる
+                        temp_construction_width += 1
+                    # じゃない場合　今の位置を記録し　縦方向の探索開始
+                    else:
+                        temp_x = j
+                        temp_y = i
+                        i += 1
+
+                        # 縦方向の判定 次のコマも同じフラグなら
+                        if(i < self.masu_y):
+                            if __debug__:
+                                print("i:",i,"j:",j,"map_chip:",self.map_chip[i][j])
+                            if(self.map_chip[i][j] == temp_construction):
+                                # 建物ブロックの深さ１伸ばせる
+                                temp_construction_height += 1
+                            # このブロックの判定完了
+                            else:
+                                #辞書型のデータにまとめリストに保存
+                                temp_dict_list.append({'flag':temp_construction,
+                                                       'width':temp_construction_width,
+                                                       'height':temp_construction_height})
+
+                                # 探索済みのブロックを-1で埋る
+                                self.SetMinus1()
+
+
+                                if __debug__:
+                                    print(temp_dict_list)
+
+                                # 記録した位置まで戻す
+                                i = temp_y
+                                j = temp_x
+
+                                # 　横方向の次のコマが探索対象となる
+                                temp_construction = self.map_chip[i][j + 1]
+
+                                # ブロック記録用の幅と深さのリセット
+                                temp_construction_height = 1
+                                temp_construction_width = 1
+        if __debug__:
+            print(temp_dict_list)
+
+
+
+
 
 
 
